@@ -254,6 +254,45 @@ Module.register("MMM-iCal-ToDo", {
 			}
 
 			titleWrapper.innerHTML = this.titleTransform(event.title) + repeatingCountTitle;
+			// titleWrapper.innerHTML = event.categories;
+
+			if (event.dueDate) {
+				const due = moment(event.dueDate);
+				const now = moment();
+				let dueText = "";
+
+				if (due.isSame(now, "day")) {
+					dueText = "due today at " + due.format("h:mma");
+				} else {
+					const days = due.startOf("day").diff(now.startOf("day"), "days");
+					if (days > 0) {
+						dueText = `due in ${days} day${days > 1 ? "s" : ""}`;
+					} else if (days < 0) {
+						dueText = `overdue by ${Math.abs(days)} day${Math.abs(days) > 1 ? "s" : ""}`;
+					}
+				}
+
+				if (dueText) {
+					const dueSpan = document.createElement("span");
+					dueSpan.style.fontSize = "0.85em";
+					dueSpan.style.opacity = "0.7";
+					dueSpan.style.marginLeft = "10px";
+					dueSpan.innerText = dueText;
+					titleWrapper.appendChild(dueSpan);
+				}
+			}
+
+			if (event.categories && Array.isArray(event.categories) && event.categories.length > 0) {
+				const categoriesDiv = document.createElement("div");
+				categoriesDiv.className = "categories-chips";
+				event.categories.forEach(cat => {
+					const chip = document.createElement("span");
+					chip.className = "category-chip";
+					chip.innerText = cat;
+					categoriesDiv.appendChild(chip);
+				});
+				titleWrapper.appendChild(categoriesDiv);
+			}
 
 			var titleClass = this.titleClassForUrl(event.url);
 
@@ -531,9 +570,22 @@ Module.register("MMM-iCal-ToDo", {
 				}
 			}
 		}
-
+		events.forEach(e => {
+			if (typeof e.dueDate === "string") {
+				// Parse iCal UTC format to timestamp
+				e.dueDate = moment(e.dueDate, "YYYYMMDDTHHmmssZ").valueOf();
+			}
+			if (typeof e.startDate === "string") {
+				e.startDate = moment(e.startDate, "YYYYMMDDTHHmmssZ").valueOf();
+			}
+		});
+		console.log("Before sort:", events.map(e => ({title: e.title, dueDate: e.dueDate, startDate: e.startDate})));
+		
 		events.sort(function (a, b) {
-			return a.startDate - b.startDate;
+			// return a.startDate - b.startDate;
+			const aDue = a.dueDate || a.startDate || 0;
+			const bDue = b.dueDate || b.startDate || 0;
+			return aDue - bDue;
 		});
 		return events.slice(0, this.config.maximumEntries);
 	},

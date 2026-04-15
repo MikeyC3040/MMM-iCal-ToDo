@@ -110,9 +110,12 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 				}
 			}
 
-//			newEvents.sort(function(a, b) {
-//				return a.startDate - b.startDate;
-//			});
+			newEvents.sort(function(a, b) {
+				var valA = a.dueDate.val.substring(0,8);
+				var valB = b.dueDate.val.substring(0,8);
+				//console.log("Values: ", valA, " ", valB);
+				return valA - valB;
+			});
 
 			//console.log(newEvents);
 

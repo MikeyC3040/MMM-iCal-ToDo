@@ -257,7 +257,7 @@ Module.register("MMM-iCal-ToDo", {
 			// titleWrapper.innerHTML = event.categories;
 
 			if (event.dueDate) {
-				const due = moment(event.dueDate);
+				const due = moment(event.dueDate.val);
 				const now = moment();
 				let dueText = "";
 

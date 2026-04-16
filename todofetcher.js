@@ -111,10 +111,14 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 			}
 
 			newEvents.sort(function(a, b) {
-				var valA = a.dueDate.val.substring(0,8);
-				var valB = b.dueDate.val.substring(0,8);
-				//console.log("Values: ", valA, " ", valB);
-				return valA - valB;
+				//console.log("Events: ",a," ",b);
+				var valA = a.dueDate.val.split("T");
+				var valB = b.dueDate.val.split("T");
+				
+				if (valA[0] == valB[0]) {
+					return valA[1] - valB[1];
+				}
+				return valA[0] - valB[0];
 			});
 
 			//console.log(newEvents);

@@ -262,7 +262,11 @@ Module.register("MMM-iCal-ToDo", {
 				let dueText = "";
 
 				if (due.isSame(now, "day")) {
-					dueText = "due today at " + due.format("h:mma");
+					if (event.dueDate.val.includes("T")){
+						dueText = "due today at " + due.format("h:mma");
+					} else {
+						dueText = "due today";
+					}
 				} else {
 					const days = due.startOf("day").diff(now.startOf("day"), "days");
 					if (days > 0) {

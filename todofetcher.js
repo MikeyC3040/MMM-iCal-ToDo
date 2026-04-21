@@ -74,6 +74,7 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 
 			for (var e in data) {
 				var event = data[e];
+				console.log(event);
 				var now = new Date();
 				var today = moment().startOf("day").toDate();
 				var future = moment().startOf("day").add(maximumNumberOfDays, "days").subtract(1,"seconds").toDate(); // Subtract 1 second so that events that start on the middle of the night will not repeat.
@@ -82,7 +83,7 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 				if (includePastEvents) {
 					past = moment().startOf("day").subtract(maximumNumberOfDays, "days").toDate();
 				}
-
+				
 				// FIXME:
 				// Ugly fix to solve the facebook birthday issue.
 				// Otherwise, the recurring events only show the birthday for next year.
@@ -95,22 +96,20 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 
 				if (event.type === "VTODO") {
 
-					var startDate;
-
 					var title = getTitleFromEvent(event);
 					if (event.status === "COMPLETED") {
 					    continue;
 					}
-
 					newEvents.push({
 						title: title,
-						dueDate: event.due,
+						dueDate: {time: event.due, dateOnly: event.due.dateOnly},
+						startDate: {time: event.start, dateOnly: event.start.dateOnly},
 						categories: event.categories
 					});
 				}
 			}
 
-			newEvents.sort(function(a, b) {
+			/*newEvents.sort(function(a, b) {
 				//console.log("Events: ",a," ",b);
 				var valA = a.dueDate.val.split("T");
 				var valB = b.dueDate.val.split("T");
@@ -119,7 +118,7 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 					return valA[1] - valB[1];
 				}
 				return valA[0] - valB[0];
-			});
+			});*/
 
 			//console.log(newEvents);
 

@@ -52,7 +52,6 @@ Module.register("MMM-iCal-ToDo", {
 		},
 		broadcastEvents: true,
 		excludedEvents: [],
-		sliceMultiDayEvents: false,
 		broadcastPastEvents: false,
 		nextDaysRelative: false
 	},
@@ -179,6 +178,7 @@ Module.register("MMM-iCal-ToDo", {
 
 		for (var e in events) {
 			var event = events[e];
+			//console.log(event);
 			var dateAsString = moment(event.startDate, "x").format(this.config.dateFormat);
 			if(this.config.timeFormat === "dateheaders"){
 				if(lastSeenDate !== dateAsString){
@@ -257,18 +257,17 @@ Module.register("MMM-iCal-ToDo", {
 			// titleWrapper.innerHTML = event.categories;
 
 			if (event.dueDate) {
-				const due = moment(event.dueDate.val);
 				const now = moment();
 				let dueText = "";
 
-				if (due.isSame(now, "day")) {
-					if (event.dueDate.val.includes("T")){
-						dueText = "due today at " + due.format("h:mma");
-					} else {
+				if (event.dueDate.isSame(now, "day")) {
+					if (event.dateOnly){
 						dueText = "due today";
+					} else {
+						dueText = "due today at " + event.dueDate.format("h:mma");
 					}
 				} else {
-					const days = due.startOf("day").diff(now.startOf("day"), "days");
+					const days = event.dueDate.startOf("day").diff(now.startOf("day"), "days");
 					if (days > 0) {
 						dueText = `due in ${days} day${days > 1 ? "s" : ""}`;
 					} else if (days < 0) {
@@ -515,17 +514,18 @@ Module.register("MMM-iCal-ToDo", {
 	createEventList: function () {
 		var events = [];
 		var today = moment().startOf("day");
-		var now = new Date();
-		var future = moment().startOf("day").add(this.config.maximumNumberOfDays, "days").toDate();
+		var now = moment();
+		var future = moment().startOf("day").add(this.config.maximumNumberOfDays, "days");
 		for (var c in this.todoData) {
 			var todo = this.todoData[c];
 			for (var e in todo) {
 				var event = JSON.parse(JSON.stringify(todo[e])); // clone object
-				if(event.endDate < now) {
-					continue;
-				}
+				event.dateOnly = event.dueDate.dateOnly || false;
+				event.dueDate = moment(event.dueDate.time);
+				event.startDate = moment(event.startDate.time);
+				console.log(event);
 				if(this.config.hidePrivate) {
-					if(event.class === "PRIVATE") {
+					if(!('priority' in event)) {
 						  // do not add the current event, skip it
 						  continue;
 					}
@@ -541,56 +541,19 @@ Module.register("MMM-iCal-ToDo", {
 				event.url = c;
 				event.today = event.startDate >= today && event.startDate < (today + 24 * 60 * 60 * 1000);
 
-				/* if sliceMultiDayEvents is set to true, multiday events (events exceeding at least one midnight) are sliced into days,
-				* otherwise, esp. in dateheaders mode it is not clear how long these events are.
-				*/
-				var maxCount = Math.ceil(((event.endDate - 1) - moment(event.startDate, "x").endOf("day").format("x"))/(1000*60*60*24)) + 1;
-				if (this.config.sliceMultiDayEvents && maxCount > 1) {
-					var splitEvents = [];
-					var midnight = moment(event.startDate, "x").clone().startOf("day").add(1, "day").format("x");
-					var count = 1;
-					while (event.endDate > midnight) {
-						var thisEvent = JSON.parse(JSON.stringify(event)); // clone object
-						thisEvent.today = thisEvent.startDate >= today && thisEvent.startDate < (today + 24 * 60 * 60 * 1000);
-						thisEvent.endDate = midnight;
-						thisEvent.title += " (" + count + "/" + maxCount + ")";
-						splitEvents.push(thisEvent);
-
-						event.startDate = midnight;
-						count += 1;
-						midnight = moment(midnight, "x").add(1, "day").format("x"); // next day
-					}
-					// Last day
-					event.title += " ("+count+"/"+maxCount+")";
-					splitEvents.push(event);
-
-					for (event of splitEvents) {
-						if ((event.endDate > now) && (event.endDate <= future)) {
-							events.push(event);
-						}
-					}
-				} else {
+				if (event.dueDate < future) {
 					events.push(event);
 				}
 			}
 		}
-		events.forEach(e => {
-			if (typeof e.dueDate === "string") {
-				// Parse iCal UTC format to timestamp
-				e.dueDate = moment(e.dueDate, "YYYYMMDDTHHmmssZ").valueOf();
-			}
-			if (typeof e.startDate === "string") {
-				e.startDate = moment(e.startDate, "YYYYMMDDTHHmmssZ").valueOf();
-			}
-		});
 		console.log("Before sort:", events.map(e => ({title: e.title, dueDate: e.dueDate, startDate: e.startDate})));
-		
 		events.sort(function (a, b) {
 			// return a.startDate - b.startDate;
 			const aDue = a.dueDate || a.startDate || 0;
 			const bDue = b.dueDate || b.startDate || 0;
 			return aDue - bDue;
 		});
+		console.log(events);
 		return events.slice(0, this.config.maximumEntries);
 	},
 

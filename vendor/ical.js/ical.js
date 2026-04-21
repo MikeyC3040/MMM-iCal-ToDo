@@ -376,6 +376,7 @@
       , 'UID' : storeParam('uid')
       , 'LOCATION' : storeParam('location')
       , 'DTSTART' : dateParam('start')
+	  , 'DUE': dateParam('due')
       , 'DTEND' : dateParam('end')
       , 'EXDATE' : exdateParam('exdate')
       ,' CLASS' : storeParam('class')

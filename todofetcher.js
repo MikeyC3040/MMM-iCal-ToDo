@@ -103,7 +103,7 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 					newEvents.push({
 						title: title,
 						dueDate: {time: event.due, dateOnly: event.due.dateOnly},
-						startDate: {time: event.start, dateOnly: event.start.dateOnly},
+						//startDate: {time: event.start, dateOnly: event.start.dateOnly},
 						categories: event.categories
 					});
 				}

@@ -522,7 +522,7 @@ Module.register("MMM-iCal-ToDo", {
 				var event = JSON.parse(JSON.stringify(todo[e])); // clone object
 				event.dateOnly = event.dueDate.dateOnly || false;
 				event.dueDate = moment(event.dueDate.time);
-				event.startDate = moment(event.startDate.time);
+				//event.startDate = moment(event.startDate.time);
 				console.log(event);
 				if(this.config.hidePrivate) {
 					if(!('priority' in event)) {

@@ -74,7 +74,7 @@ var ToDoFetcher = function(url, reloadInterval, excludedEvents, maximumEntries, 
 
 			for (var e in data) {
 				var event = data[e];
-				console.log(event);
+				//console.log(event);
 				var now = new Date();
 				var today = moment().startOf("day").toDate();
 				var future = moment().startOf("day").add(maximumNumberOfDays, "days").subtract(1,"seconds").toDate(); // Subtract 1 second so that events that start on the middle of the night will not repeat.
